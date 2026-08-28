@@ -18,3 +18,6 @@ If you wish to submit a sample topologies, you can either create a pull request 
 for this `README.md` alone that points to your CML use cases hosted elsewhere.
 
 Feel free to contribute new topologies or suggest additional resources!
+
+> **NOTE:** When contributing new topologies, make sure your `topology.yaml` files are named uniquely and _NOT_ `topology.yaml`.  The CML sample labs
+browser will flatten the hierarchy so having descriptively named files (even unique across this whole repo) will help people identify them.
