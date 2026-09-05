@@ -2,7 +2,8 @@
 
 Recent Intel EC2 instance families support hardware nested virtualization, so CML can run on an
 ordinary EC2 instance rather than a bare-metal one. A 5-node CML-Free lab runs comfortably on an
-`m8i.xlarge`, which is roughly 1% of the hourly cost of an `i3en.metal`.
+`m8i.xlarge`, which is roughly 1% of the hourly cost of an `i3en.metal`. See the first note below
+for what was actually verified.
 
 EC2 cannot boot an ISO, so the install is a two-part job: build an AMI once on a temporary
 "bake" host, then launch instances from that AMI.
@@ -129,6 +130,12 @@ EC2 cannot boot an ISO, so the install is a two-part job: build an AMI once on a
 
 ##### Notes
 
+- **What was verified.** On an `m8i.xlarge` with nested virtualization enabled, a KVM-backed node
+  (`alpine`) boots as a hardware-accelerated QEMU domain — `qemu-system-x86_64 ... -accel kvm
+  -cpu host`, with `/dev/kvm` present and `kvm_intel` loaded — and a 5-node IOL/IOL-L2 lab
+  (MPLS L3VPN) runs at about 1% host CPU. IOL nodes run as native processes, not under KVM, so
+  the alpine node is what demonstrates nested virtualization. Other KVM node types (IOSv, ASAv,
+  …) use the same accelerated QEMU path but were not individually booted.
 - **Set the bridge port MTU to 9001** as shown above. AWS DHCP gives `bridge0` an MTU of 9001
   while the bridge port stays at 1500; the symptom is confusing, because TCP handshakes succeed
   and then payload packets disappear, so port 443 accepts connections but nothing ever loads.
@@ -140,12 +147,10 @@ EC2 cannot boot an ISO, so the install is a two-part job: build an AMI once on a
   `InstanceInterruptionBehavior: stop` can be stopped and started by hand and survives
   interruption.
 - Sizing: with CML-Free's 5-node limit, a 5-node IOL lab was observed using about 2 GB of RAM, so
-  8 GB is adequate for IOL-only labs and 16 GB covers ASAv or desktop nodes. See the
-  [CML Sizing Calculator](https://ciscolearning.github.io/cml-sizer/) for larger deployments.
+  8 GB is adequate for IOL-only labs; 16 GB for ASAv or desktop nodes is extrapolation, not
+  measured. See the [CML Sizing Calculator](https://ciscolearning.github.io/cml-sizer/) for
+  larger deployments.
 
-##### Automation
-
-Two community repositories automate the above, if you would rather not do it by hand:
-[cml-free-ami-baker](https://github.com/felipedbene/cml-free-ami-baker) builds the AMI with a
-single command, and [cml-free-on-aws](https://github.com/felipedbene/cml-free-on-aws) is a CDK
-stack that deploys it.
+*Optional, unofficial: [cml-free-ami-baker](https://github.com/felipedbene/cml-free-ami-baker)
+and [cml-free-on-aws](https://github.com/felipedbene/cml-free-on-aws) automate the AMI bake and
+the deployment respectively.*
